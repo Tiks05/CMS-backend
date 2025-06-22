@@ -5,7 +5,7 @@
 [![SQLAlchemy](https://img.shields.io/badge/ORM-SQLAlchemy-red)](https://www.sqlalchemy.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-> 📘 **CMS-backend** is a scalable and modular backend service for an article management system built with **Flask + SQLAlchemy 2.x**. Inspired by the official design of Tomato Novel (番茄小说), this backend supports multi-role access control, article publishing, nested comments, file uploads, and more. It is designed to work seamlessly with a Vue3 + TypeScript frontend.
+📘 CMS-backend is a scalable and modular backend service for an article management system built with Flask + SQLAlchemy 2.x. Inspired by the official design of Tomato Novel (番茄小说), this backend supports multi-role access control, article publishing, nested comments, file uploads, and more. It is designed to work seamlessly with [CMS-frontend](https://github.com/Tiks05/CMS-frontend) built with Vue3 + TypeScript.
 
 ## ✨ Features
 
