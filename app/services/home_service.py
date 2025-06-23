@@ -1,6 +1,7 @@
-from sqlalchemy.orm import selectinload
-from ..models import Book, News, User
-from ..schemas.home_schema import RankingBookOut, BookRankingOut, BookOut, AdaptBookOut
+from typing import List
+from sqlalchemy.orm import selectinload, joinedload
+from ..models import Book, News, User, Chapter, Volume
+from ..schemas.home_schema import RankingBookOut, BookRankingOut, BookOut, AdaptBookOut, RecentUpdateItem
 from app.extensions import db
 from flask import request
 import random
@@ -88,3 +89,34 @@ def get_ranking_list(reader_type: str, plot_type: str) -> BookRankingOut:
         child=convert(read_books),
         new_child=convert(new_books)
     )
+
+def get_recent_updates(limit: int = 10) -> List[RecentUpdateItem]:
+    chapters = (
+        db.session.query(Chapter)
+        .join(Volume, Chapter.volume_id == Volume.id)
+        .join(Book, Volume.book_id == Book.id)
+        .options(
+            joinedload(Chapter.volume).joinedload(Volume.book).joinedload(Book.author)
+        )
+        .order_by(Chapter.updated_at.desc())
+        .limit(limit)
+        .all()
+    )
+
+    updates = []
+    for chapter in chapters:
+        volume = chapter.volume
+        book = volume.book if volume else None
+        author = book.author if book else None
+
+        if book:
+            updates.append(RecentUpdateItem(
+                type=book.plot_type or "",
+                title=book.title,
+                path=f"/bookinfo/{book.id}",
+                chapter=chapter.title,
+                author=author.nickname if author else "未知作者",
+                time=chapter.updated_at.strftime("%m-%d %H:%M") if chapter.updated_at else ""
+            ))
+
+    return updates

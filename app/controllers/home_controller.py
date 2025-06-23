@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from ..core.response import Result
-from ..services.home_service import get_top_books_service, get_news_list_service, get_writer_list_service, get_recommend_books, get_adapt_list_service, get_ranking_list
+from ..services.home_service import get_top_books_service, get_news_list_service, get_writer_list_service, \
+    get_recommend_books, get_adapt_list_service, get_ranking_list, get_recent_updates
 from ..schemas.home_schema import TopBookOut, NewsOut, WriterOut, RecommendResponse, AdaptListResponse
 
 home_bp = Blueprint('home', __name__)
@@ -80,3 +81,11 @@ def ranking():
 
     data = get_ranking_list(reader_type, plot_type)
     return Result.success(data.dict())
+
+@home_bp.route('/recent-updates', methods=['GET'])
+def recent_updates():
+    """
+    最近更新章节列表（按更新时间倒序）
+    """
+    updates = get_recent_updates()
+    return Result.success(data=[u.dict() for u in updates])

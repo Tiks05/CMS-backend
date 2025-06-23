@@ -94,8 +94,7 @@ class ChapterInfoSchema(BaseModel):
 
 class ChapterCreateSchema(BaseModel):
     book_id: int
-    volume_index: int
-    chapter_num: int
+    volume_id: Optional[int] = None
     title: str
     content: str
     word_count: int
@@ -141,3 +140,22 @@ class ChapterDetailSchema(BaseModel):
     chapter_num: int          # 章节编号
     title: str                # 章节标题
     content: str              # 章节正文
+
+class VolumeChapterQuerySchema(BaseModel):
+    book_id: int
+    volume_id: int
+
+class LastChapterResponse(BaseModel):
+    volume_title: Optional[str] = None                    # ✅ 当前正在写的分卷标题（只有传 volumeId 时才有）
+    current_volume_id: Optional[int] = None                              # ✅ 当前正在写的分卷编号（sort）
+    last_volume_id: int                   # 上次提交的卷编号（sort）
+    last_volume_title: str                # 上次提交的卷标题
+    chapter_index: int                    # 上次提交的章节号
+    chapter_title: Optional[str] = ""     # 上次提交的章节标题
+    updated_at: Optional[str] = ""        # 更新时间（格式化字符串）
+
+class LatestChapterResponse(BaseModel):
+    latest_volume_sort: int                      # 最新章节所在卷的排序号
+    latest_chapter_num: int                      # 最新章节号
+    latest_chapter_title: str                    # 最新章节标题
+    latest_chapter_updated_at: Optional[str] = ""  # 更新时间（字符串格式）

@@ -78,28 +78,28 @@ def get_book_content(book_id: int) -> dict:
         'volumes': result
     }
 
-def get_chapter_content(book_id: int, volume_id: int, chapter_id: int) -> Dict:
-    # 1. 用 volume.sort 和 book_id 查出对应的 volume 对象
+def get_chapter_content(book_id: int, volume_sort: int, chapter_num: int) -> Dict:
+    # 1. 通过 book_id + volume.sort 查对应 Volume
     volume = db.session.query(Volume).filter(
-        Volume.sort == volume_id,  # 注意这里传入的是 sort，不是 volume 表主键 id
-        Volume.book_id == book_id
+        Volume.book_id == book_id,
+        Volume.sort == volume_sort
     ).first()
     if not volume:
-        raise ValueError("该分卷不属于当前书籍")
+        raise ValueError("该分卷不存在或不属于当前书籍")
 
-    # 2. 查找章节，确保 chapter_num 属于该 volume
+    # 2. 通过 volume.id + chapter_num 查找 Chapter
     chapter = (
         db.session.query(Chapter)
-        .filter(Chapter.chapter_num == chapter_id, Chapter.volume_id == volume.id)
+        .filter(Chapter.volume_id == volume.id, Chapter.chapter_num == chapter_num)
         .first()
     )
     if not chapter:
         raise ValueError("章节不存在或不属于该分卷")
 
-    # 3. 获取书名（防止 book 关系为空）
+    # 3. 获取书名（防止为空）
     book_title = volume.book.title if volume.book else ""
 
-    # 4. 上一章（注意用 volume.id）
+    # 4. 获取上一章
     prev_chapter = (
         db.session.query(Chapter)
         .filter(Chapter.volume_id == volume.id, Chapter.chapter_num < chapter.chapter_num)
@@ -107,7 +107,7 @@ def get_chapter_content(book_id: int, volume_id: int, chapter_id: int) -> Dict:
         .first()
     )
 
-    # 5. 下一章
+    # 5. 获取下一章
     next_chapter = (
         db.session.query(Chapter)
         .filter(Chapter.volume_id == volume.id, Chapter.chapter_num > chapter.chapter_num)
@@ -115,7 +115,7 @@ def get_chapter_content(book_id: int, volume_id: int, chapter_id: int) -> Dict:
         .first()
     )
 
-    # 6. 返回数据结构化结果
+    # 6. 组织响应结构
     return ChapterReadResponse(
         book_title=book_title,
         chapter_title=chapter.title,
@@ -123,6 +123,6 @@ def get_chapter_content(book_id: int, volume_id: int, chapter_id: int) -> Dict:
         updated_at=chapter.updated_at.strftime('%Y-%m-%d') if chapter.updated_at else "",
         content=chapter.content or "",
         chapter_index=chapter.chapter_num or 1,
-        prev_chapter_id=prev_chapter.id if prev_chapter else None,
-        next_chapter_id=next_chapter.id if next_chapter else None
+        prev_chapter_id=prev_chapter.chapter_num if prev_chapter else None,
+        next_chapter_id=next_chapter.chapter_num if next_chapter else None
     ).dict()

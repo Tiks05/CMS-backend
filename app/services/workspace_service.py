@@ -265,31 +265,46 @@ def get_last_chapter_info(book_id: int) -> ChapterInfoSchema:
     )
 
 def create_chapter(data: ChapterCreateSchema) -> None:
-    # 若没有卷，则创建第1卷
-    volume = (
-        db.session.query(Volume)
-        .filter(Volume.book_id == data.book_id, Volume.sort == data.volume_index)
+    if data.volume_id:
+        # 有 volume_id：查找该卷
+        volume = db.session.query(Volume).filter(Volume.id == data.volume_id).first()
+        if not volume:
+            raise ValueError("指定的分卷不存在")
+
+    else:
+        # 无 volume_id：查 book 的最后一卷
+        volume = (
+            db.session.query(Volume)
+            .filter(Volume.book_id == data.book_id)
+            .order_by(Volume.sort.desc())
+            .first()
+        )
+
+        if not volume:
+            # 若该书没有任何分卷，则新建“第一卷”
+            volume = Volume(book_id=data.book_id, title='第一卷', sort=1)
+            db.session.add(volume)
+            db.session.flush()  # 获取 volume.id
+
+    # 获取该卷下最后一个章节编号
+    last_chapter = (
+        db.session.query(Chapter)
+        .filter(Chapter.volume_id == volume.id)
+        .order_by(Chapter.chapter_num.desc())
         .first()
     )
+    next_chapter_num = (last_chapter.chapter_num if last_chapter else 0) + 1
 
-    if not volume:
-        volume = Volume(
-            book_id=data.book_id,
-            title='第一卷',
-            sort=data.volume_index
-        )
-        db.session.add(volume)
-        db.session.flush()  # 保证 volume.id 可用
-
-    # 插入章节
-    chapter = Chapter(
+    # 创建新章节
+    new_chapter = Chapter(
         volume_id=volume.id,
-        chapter_num=data.chapter_num,
+        chapter_num=next_chapter_num,
         title=data.title,
         content=data.content,
         word_count=data.word_count
     )
-    db.session.add(chapter)
+
+    db.session.add(new_chapter)
     db.session.commit()
 
 status_mapping = {
@@ -405,3 +420,123 @@ def get_chapter_detail_by_id(book_id: int, chapter_id: int) -> dict:
         title=chapter.title,
         content=chapter.content
     ).dict()
+
+def delete_volume_with_chapters(book_id: int, volume_id: int):
+    # 查询目标分卷是否存在，并确保属于该书籍
+    volume = db.session.query(Volume).filter(Volume.id == volume_id, Volume.book_id == book_id).first()
+    if not volume:
+        return False
+
+    # 删除该分卷下所有章节
+    db.session.query(Chapter).filter(Chapter.volume_id == volume_id).delete()
+
+    # 删除分卷
+    db.session.delete(volume)
+
+    # 提交事务
+    db.session.commit()
+    return True
+
+def update_volume_title(volume_id: int, book_id: int, new_title: str) -> bool:
+    # 查询是否存在该分卷且属于该书籍
+    volume = db.session.query(Volume).filter_by(id=volume_id, book_id=book_id).first()
+    if not volume:
+        return False
+
+    # 修改标题
+    volume.title = new_title
+
+    # 提交修改
+    db.session.commit()
+    return True
+
+def create_volume(book_id: int, title: str, sort: int):
+    new_volume = Volume(book_id=book_id, title=title, sort=sort)
+    db.session.add(new_volume)
+    db.session.commit()
+    return new_volume.id
+
+def get_last_chapter_by_book_id(book_id: int):
+    # 获取该书的最后一卷（按 sort 倒序）
+    last_volume = (
+        db.session.query(Volume)
+        .filter(Volume.book_id == book_id)
+        .order_by(Volume.sort.desc())
+        .first()
+    )
+    if not last_volume:
+        return None
+
+    # 获取该卷最后一章
+    last_chapter = (
+        db.session.query(Chapter)
+        .filter(Chapter.volume_id == last_volume.id)
+        .order_by(Chapter.chapter_num.desc())
+        .first()
+    )
+
+    return {
+        "last_volume_id": last_volume.sort,
+        "last_volume_title": last_volume.title,
+        "chapter_index": last_chapter.chapter_num if last_chapter else 0,
+        "chapter_title": last_chapter.title if last_chapter else "",
+        "updated_at": last_chapter.updated_at.strftime("%Y-%m-%d %H:%M:%S") if last_chapter else ""
+    }
+
+def get_last_chapter_by_volume_id(book_id: int, volume_id: int):
+    current_volume = (
+        db.session.query(Volume)
+        .filter(Volume.id == volume_id, Volume.book_id == book_id)
+        .first()
+    )
+    if not current_volume:
+        return None
+
+    # 所有分卷中 sort 最大的那一卷（即最后一卷）
+    last_volume = (
+        db.session.query(Volume)
+        .filter(Volume.book_id == book_id)
+        .order_by(Volume.sort.desc())
+        .first()
+    )
+
+    # 最后一卷的最后一章
+    last_chapter = (
+        db.session.query(Chapter)
+        .filter(Chapter.volume_id == last_volume.id)
+        .order_by(Chapter.chapter_num.desc())
+        .first()
+    )
+
+    return {
+        "volume_title": current_volume.title,                           # 当前写入卷
+        "current_volume_id": current_volume.sort,
+        "last_volume_id": last_volume.sort,
+        "last_volume_title": last_volume.title,
+        "chapter_index": last_chapter.chapter_num if last_chapter else 0,
+        "chapter_title": last_chapter.title if last_chapter else "",
+        "updated_at": last_chapter.updated_at.strftime("%Y-%m-%d %H:%M:%S") if last_chapter else ""
+    }
+
+def get_latest_chapter_by_book_id(book_id: int):
+
+    # 从 Volume 表筛选出该书的所有分卷，并连接其下的章节
+    result = (
+        db.session.query(Chapter, Volume)
+        .join(Volume, Chapter.volume_id == Volume.id)
+        .filter(Volume.book_id == book_id)
+        .order_by(Chapter.updated_at.desc())
+        .first()
+    )
+
+    if not result:
+        return None  # 没有任何章节
+
+    chapter, volume = result
+
+    return {
+        "latest_volume_sort": volume.sort,
+        "latest_chapter_num": chapter.chapter_num,
+        "latest_chapter_title": chapter.title,
+        "latest_chapter_updated_at": chapter.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+    }
