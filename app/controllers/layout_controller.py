@@ -1,11 +1,12 @@
 from flask import Blueprint, request
-from ..schemas.layout_schema import UserProfileUpdateForm
-from ..services.layout_service import update_user_profile
+from ..schemas.layout_schema import UserProfileUpdateForm, SearchBookRequest
+from ..services.layout_service import update_user_profile, search_books
 from ..core.response import Result
 
 layout_bp = Blueprint('layout', __name__)
 
-@layout_bp.route('/update', methods=['POST'])
+
+@layout_bp.route('/profile/update', methods=['POST'])
 def update_profile():
     form = request.form
     avatar_file = request.files.get('avatar')  # 上传的新头像（可为空）
@@ -19,7 +20,15 @@ def update_profile():
         name=data.name,
         intro=data.introduction,
         avatar_file=avatar_file,
-        fallback_avatar=data.avatar
+        fallback_avatar=data.avatar,
     )
 
+    return Result.success(data=result.dict())
+
+
+@layout_bp.route('/search-books', methods=['GET'])
+def search_books_api():
+    # 解析请求参数并验证
+    args = SearchBookRequest(**request.args)
+    result = search_books(args)
     return Result.success(data=result.dict())

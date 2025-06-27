@@ -3,16 +3,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from app.extensions import db
 
+
 class Chapter(db.Model):
     __tablename__ = 'chapter'
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
     volume_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey('volume.id'),
-        nullable=False,
-        comment='所属卷ID'
+        Integer, ForeignKey('volume.id'), nullable=False, comment='所属卷ID'
     )
 
     chapter_num: Mapped[int] = mapped_column(Integer, nullable=False, comment='章节序号')
@@ -25,11 +23,15 @@ class Chapter(db.Model):
         nullable=False,
         default='published',
         server_default='published',
-        comment='章节审核状态：published已发布、reviewing审核中、rejected未通过、pending待发布'
+        comment='章节审核状态：published已发布、reviewing审核中、rejected未通过、pending待发布',
     )
 
-    created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), comment='创建时间')
-    updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), comment='更新时间')
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime, server_default=func.now(), comment='创建时间'
+    )
+    updated_at: Mapped[DateTime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), comment='更新时间'
+    )
 
     volume = relationship("Volume", back_populates="chapters")
 

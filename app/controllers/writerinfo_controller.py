@@ -5,10 +5,12 @@ from app.core.response import Result  # 你统一返回格式
 
 writerinfo_bp = Blueprint('writerinfo', __name__)
 
+
 @writerinfo_bp.route('/header/<int:writer_id>', methods=['GET'])
 def get_writer_header(writer_id):
     data = get_writer_header_service(writer_id)
     return Result.success(WriterHeaderData(writer=data).dict())
+
 
 @writerinfo_bp.route('/works/<int:writer_id>', methods=['GET'])
 def get_writer_works(writer_id):

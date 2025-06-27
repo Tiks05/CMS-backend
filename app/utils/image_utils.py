@@ -4,10 +4,9 @@ from flask import request
 from werkzeug.datastructures import FileStorage
 from app.config import BASE_DIR
 
+
 def save_uploaded_image(
-    file: FileStorage,
-    sub_folder: str,
-    upload_dir: str = 'static/uploads'
+    file: FileStorage, sub_folder: str, upload_dir: str = 'static/uploads'
 ) -> tuple[str, str]:
     """
     保存上传的图片文件，返回 (相对路径, 前端可访问的完整URL)

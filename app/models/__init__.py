@@ -17,5 +17,5 @@ __all__ = [
     "Favorite",
     "News",
     "Classroom",
-    "Volume"
+    "Volume",
 ]

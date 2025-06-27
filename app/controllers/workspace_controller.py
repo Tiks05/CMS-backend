@@ -1,16 +1,43 @@
 from flask import Blueprint, request
-from ..schemas.workspace_schema import AuthorApplyForm, BookCreateForm, MyBookListQuery, BookUpdateForm, \
-    ChapterCreateSchema, ChapterUpdateSchema, LastChapterResponse, LatestChapterResponse
-from ..services.workspace_service import save_author_application, get_author_stats, get_notice_list, get_news_list, \
-    get_book_rank_data, save_book, get_book_list_by_user, get_book_detail, update_book_info, get_last_chapter_info, \
-    create_chapter, get_chapter_list_by_book_id, delete_chapter_by_id, update_chapter, get_chapter_detail_by_id, \
-    delete_volume_with_chapters, update_volume_title, create_volume, get_last_chapter_by_volume_id, \
-    get_last_chapter_by_book_id, get_latest_chapter_by_book_id
+from ..schemas.workspace_schema import (
+    AuthorApplyForm,
+    BookCreateForm,
+    MyBookListQuery,
+    BookUpdateForm,
+    ChapterCreateSchema,
+    ChapterUpdateSchema,
+    LastChapterResponse,
+    LatestChapterResponse,
+)
+from ..services.workspace_service import (
+    save_author_application,
+    get_author_stats,
+    get_notice_list,
+    get_news_list,
+    get_book_rank_data,
+    save_book,
+    get_book_list_by_user,
+    get_book_detail,
+    update_book_info,
+    get_last_chapter_info,
+    create_chapter,
+    get_chapter_list_by_book_id,
+    delete_chapter_by_id,
+    update_chapter,
+    get_chapter_detail_by_id,
+    delete_volume_with_chapters,
+    update_volume_title,
+    create_volume,
+    get_last_chapter_by_volume_id,
+    get_last_chapter_by_book_id,
+    get_latest_chapter_by_book_id,
+)
 from app.schemas.workspace_schema import BookRankResponse
 from ..core.response import Result
 from app.core.exceptions import APIException
 
 workspace_bp = Blueprint('workspace', __name__)
+
 
 @workspace_bp.route('/apply', methods=['POST'])
 def author_apply():
@@ -26,16 +53,18 @@ def author_apply():
         name=data.name,
         intro=data.introduction,
         avatar_file=avatar_file,
-        fallback_avatar=data.avatar
+        fallback_avatar=data.avatar,
     )
 
     # 直接 .dict() 返回给前端
     return Result.success(data=raw_result.dict())
 
+
 @workspace_bp.route('/writer/stats/<int:user_id>', methods=['GET'])
 def get_writer_stats(user_id: int):
     data = get_author_stats(user_id)
     return Result.success(data.dict())
+
 
 @workspace_bp.route('/writer/notice-list', methods=['GET'])
 def get_notice_list_route():
@@ -43,11 +72,13 @@ def get_notice_list_route():
     data = get_notice_list(limit=limit)
     return Result.success([item.dict() for item in data])
 
+
 @workspace_bp.route('/writer/news-list', methods=['GET'])
 def news_list():
     limit = int(request.args.get('limit', 4))
     data = get_news_list(limit=limit)
     return Result.success([item.dict() for item in data])
+
 
 @workspace_bp.route('/writer/book-rank', methods=['GET'])
 def get_book_rank():
@@ -58,6 +89,7 @@ def get_book_rank():
 
     return Result.success(BookRankResponse(**data).dict())
 
+
 @workspace_bp.route('/writer/create-book', methods=['POST'])
 def create_book():
     form = request.form
@@ -67,12 +99,10 @@ def create_book():
     data = BookCreateForm(**form)
 
     # 保存到数据库
-    save_book(
-        data=data,
-        cover_file=cover_file
-    )
+    save_book(data=data, cover_file=cover_file)
 
     return Result.success('创建成功')
+
 
 @workspace_bp.route('/writer/my-book-list', methods=['GET'])
 def get_my_book_list():
@@ -84,10 +114,12 @@ def get_my_book_list():
 
     return Result.success(data)
 
+
 @workspace_bp.route('/writer/book-overview/<int:book_id>', methods=['GET'])
 def book_overview_detail(book_id: int):
     data = get_book_detail(book_id)
     return Result.success(data.dict())
+
 
 @workspace_bp.route('/writer/update-book', methods=['POST'])
 def update_book():
@@ -98,12 +130,10 @@ def update_book():
     data = BookUpdateForm(**form)  # 或创建一个专用的 BookUpdateForm 也行
 
     # 调用更新逻辑
-    update_book_info(
-        data=data,
-        cover_file=cover_file
-    )
+    update_book_info(data=data, cover_file=cover_file)
 
     return Result.success('修改成功')
+
 
 @workspace_bp.route('/writer/get-last-chapterInfo', methods=['GET'])
 def get_last_chapter():
@@ -112,12 +142,14 @@ def get_last_chapter():
     data = get_last_chapter_info(book_id)
     return Result.success(data.dict())
 
+
 @workspace_bp.route('/writer/create-chapter', methods=['POST'])
 def post_create_chapter():
     data = ChapterCreateSchema(**request.json)
     create_chapter(data)
 
     return Result.success()
+
 
 @workspace_bp.route('/writer/chapter-list', methods=['GET'])
 def chapter_list():
@@ -127,12 +159,10 @@ def chapter_list():
     status = request.args.get('status', '').strip()
 
     data = get_chapter_list_by_book_id(
-        book_id=book_id,
-        title=title,
-        volume_id=volume_id,
-        status=status
+        book_id=book_id, title=title, volume_id=volume_id, status=status
     ).dict()
     return Result.success(data)
+
 
 @workspace_bp.route('/writer/delete-chapter/<int:chapter_id>', methods=['DELETE'])
 def delete_chapter(chapter_id):
@@ -141,12 +171,14 @@ def delete_chapter(chapter_id):
         raise APIException("删除失败", code=40004)
     return Result.success()
 
+
 @workspace_bp.route('/writer/update-chapter', methods=['POST'])
 def update_chapter_view():
     data_dict = request.json
     data = ChapterUpdateSchema(**data_dict)
     update_chapter(data)
     return Result.success()
+
 
 @workspace_bp.route('/writer/chapter-detail', methods=['GET'])
 def chapter_detail():
@@ -155,6 +187,7 @@ def chapter_detail():
 
     data = get_chapter_detail_by_id(book_id, chapter_id)
     return Result.success(data)
+
 
 @workspace_bp.route('/writer/delete-volume', methods=['DELETE'])
 def delete_volume_api():
@@ -178,6 +211,7 @@ def update_volume_api():
     if success:
         return Result.success()
 
+
 @workspace_bp.route('/writer/create-volume', methods=['POST'])
 def create_volume_api():
     data = request.json
@@ -188,12 +222,14 @@ def create_volume_api():
     create_volume(book_id, title, sort)
     return Result.success()
 
+
 @workspace_bp.get('/writer/last-chapter')
 def get_last_chapter_by_book():
     book_id = request.args.get('book_id', type=int)
 
-    data = get_last_chapter_by_book_id(book_id)# 无数据返回空字典
+    data = get_last_chapter_by_book_id(book_id)  # 无数据返回空字典
     return Result.success(LastChapterResponse(**data).dict())
+
 
 @workspace_bp.get('/writer/last-chapter-by-volume')
 def get_last_chapter_by_volume():
@@ -204,10 +240,11 @@ def get_last_chapter_by_volume():
 
     return Result.success(LastChapterResponse(**data).dict())
 
+
 @workspace_bp.get('/writer/latest-chapter')
 def get_latest_chapter_by_book():
     book_id = request.args.get('book_id', type=int)
 
-    data = get_latest_chapter_by_book_id(book_id) # 没有章节，返回空字典
+    data = get_latest_chapter_by_book_id(book_id)  # 没有章节，返回空字典
 
     return Result.success(LatestChapterResponse(**data).dict())

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 
+
 class BookListQuerySchema(BaseModel):
     reader_type: Optional[str]
     category_group: Optional[str]  # 'theme_type' | 'role_type' | 'plot_type'
@@ -10,6 +11,7 @@ class BookListQuerySchema(BaseModel):
     sort: Optional[str]  # 'hot' | 'new' | 'words'
     page: int = 1
     pageSize: int = 10
+
 
 class BookOutSchema(BaseModel):
     id: int
@@ -21,6 +23,7 @@ class BookOutSchema(BaseModel):
     coverUrl: str
     updatedAt: str
     path: str
+
 
 class BookListOutSchema(BaseModel):
     total: int

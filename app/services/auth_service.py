@@ -5,6 +5,7 @@ from ..core.auth import generate_jwt
 from ..utils.password_utils import hash_password, check_password
 from ..core.exceptions import APIException
 
+
 def login_or_register_service(phone: str, password: str):
     user = db.session.query(User).filter_by(phone=phone).first()
 
@@ -21,7 +22,7 @@ def login_or_register_service(phone: str, password: str):
             password=hashed,
             role='user',
             nickname=phone[:3] + '****',
-            avatar='/static/assets/avatars/icons8-user-pulsar-color-32.png'
+            avatar='/static/assets/avatars/icons8-user-pulsar-color-32.png',
         )
         db.session.add(user)
         db.session.commit()

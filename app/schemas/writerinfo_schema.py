@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
+
 class Writer(BaseModel):
     nickname: str
     avatar_url: str
@@ -11,8 +12,10 @@ class Writer(BaseModel):
     follower_count: int
     # 你还可以继续加需要的字段
 
+
 class WriterHeaderData(BaseModel):
     writer: Writer
+
 
 class Work(BaseModel):
     title: str
@@ -25,6 +28,7 @@ class Work(BaseModel):
     bookinfo_path: str
     max_chapter: Optional[int] = None
     max_chapter_title: Optional[str] = None
+
 
 class WriterWorksData(BaseModel):
     works: List[Work]

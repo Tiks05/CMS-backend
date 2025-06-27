@@ -5,6 +5,7 @@ from app.schemas.bookinfo_schema import BookHeaderSchema, BookContentSchema
 
 bookinfo_bp = Blueprint('bookinfo', __name__)
 
+
 @bookinfo_bp.route('/header/<int:book_id>', methods=['GET'])
 def book_header(book_id: int):
     result = get_book_header(book_id)
@@ -13,12 +14,14 @@ def book_header(book_id: int):
     schema = BookHeaderSchema(**result)
     return Result.success(schema.dict())
 
+
 @bookinfo_bp.route('/content/<int:book_id>', methods=['GET'])
 def book_content(book_id: int):
     result = get_book_content(book_id)
 
     schema = BookContentSchema(**result)
     return Result.success(schema.dict())
+
 
 @bookinfo_bp.route('/chapter', methods=['GET'])
 def get_chapter():

@@ -6,6 +6,7 @@ from app.core.response import Result
 
 comment_bp = Blueprint('comment', __name__)
 
+
 @comment_bp.route('/list', methods=['GET'])
 def get_comment_list():
     book_id = int(request.args.get('book_id', 0))
@@ -13,12 +14,14 @@ def get_comment_list():
     comment_list = get_comments_by_book(book_id)
     return Result.success(comment_list)
 
+
 @comment_bp.route('/likes', methods=['POST'])
 def update_likes():
     data = LikeUpdateRequest(**request.get_json())
 
     increase_likes_by_ids(data.ids)
     return Result.success()
+
 
 @comment_bp.route('/create', methods=['POST'])
 def create_comment_api():

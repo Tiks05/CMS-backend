@@ -13,6 +13,7 @@ from sqlalchemy.orm import joinedload
 from app.models.comment import Comment
 from app.extensions import db
 
+
 def get_comments_by_book(book_id: int) -> List[Dict]:
     # 获取所有评论
     all_comments = (
@@ -48,19 +49,30 @@ def get_comments_by_book(book_id: int) -> List[Dict]:
                 "likes": child.likes,
                 "parent_id": child.parent_id,
                 "is_flat": (
-                    child.reply_to_user_id is not None and
-                    child.reply_to_user_id != parent_user_id
+                    child.reply_to_user_id is not None and child.reply_to_user_id != parent_user_id
                 ),
-                "reply_to_user": {
-                    "id": child.reply_to_user.id,
-                    "name": child.reply_to_user.nickname,
-                    "avatar": f"{request.host_url.rstrip('/')}{child.reply_to_user.avatar}" if child.reply_to_user.avatar else ''
-                } if child.reply_to_user else None,
+                "reply_to_user": (
+                    {
+                        "id": child.reply_to_user.id,
+                        "name": child.reply_to_user.nickname,
+                        "avatar": (
+                            f"{request.host_url.rstrip('/')}{child.reply_to_user.avatar}"
+                            if child.reply_to_user.avatar
+                            else ''
+                        ),
+                    }
+                    if child.reply_to_user
+                    else None
+                ),
                 "user": {
                     "id": child.user.id,
                     "name": child.user.nickname,
-                    "avatar": f"{request.host_url.rstrip('/')}{child.user.avatar}" if child.user.avatar else ''
-                }
+                    "avatar": (
+                        f"{request.host_url.rstrip('/')}{child.user.avatar}"
+                        if child.user.avatar
+                        else ''
+                    ),
+                },
             }
 
             result.append(item)
@@ -84,13 +96,16 @@ def get_comments_by_book(book_id: int) -> List[Dict]:
             "user": {
                 "id": top.user.id,
                 "name": top.user.nickname,
-                "avatar": f"{request.host_url.rstrip('/')}{top.user.avatar}" if top.user.avatar else ''
+                "avatar": (
+                    f"{request.host_url.rstrip('/')}{top.user.avatar}" if top.user.avatar else ''
+                ),
             },
-            "children": flatten_comment_tree(top)  # 所有子评论都平铺在这
+            "children": flatten_comment_tree(top),  # 所有子评论都平铺在这
         }
         results.append(item)
 
     return results
+
 
 def increase_likes_by_ids(ids: List[int]) -> None:
     """
@@ -101,11 +116,10 @@ def increase_likes_by_ids(ids: List[int]) -> None:
 
     # 遍历每条更新（适合少量点赞）
     for cid in ids:
-        db.session.query(Comment).filter_by(id=cid).update({
-            Comment.likes: Comment.likes + 1
-        })
+        db.session.query(Comment).filter_by(id=cid).update({Comment.likes: Comment.likes + 1})
 
     db.session.commit()
+
 
 def create_comment(data: CreateCommentRequest) -> None:
     comment = Comment(
@@ -114,7 +128,7 @@ def create_comment(data: CreateCommentRequest) -> None:
         content=data.content,
         parent_id=data.parent_id,
         reply_to_user_id=data.reply_to_user_id,
-        created_at=datetime.datetime.now()
+        created_at=datetime.datetime.now(),
     )
     db.session.add(comment)
     db.session.commit()

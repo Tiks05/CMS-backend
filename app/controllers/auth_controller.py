@@ -5,6 +5,7 @@ from ..services.auth_service import login_or_register_service
 
 auth_bp = Blueprint('auth', __name__)
 
+
 @auth_bp.route('/pwd', methods=['POST'])
 def login_or_register():
     data = request.get_json()
@@ -17,17 +18,22 @@ def login_or_register():
     user, token = login_or_register_service(phone, password)
     avatar_url = request.host_url.rstrip('/') + user.avatar
 
-    return Result.success({
-        "user": {
-            "id": user.id,
-            "phone": user.phone,
-            "role": user.role,
-            "nickname": user.nickname,
-            "avatar": avatar_url,
-            "become_author_at": user.become_author_at.strftime("%Y-%m-%d %H:%M:%S") if user.become_author_at else "",
-            "signature": user.signature,
-            "level": user.level
-        },
-        "token": token
-    })
-
+    return Result.success(
+        {
+            "user": {
+                "id": user.id,
+                "phone": user.phone,
+                "role": user.role,
+                "nickname": user.nickname,
+                "avatar": avatar_url,
+                "become_author_at": (
+                    user.become_author_at.strftime("%Y-%m-%d %H:%M:%S")
+                    if user.become_author_at
+                    else ""
+                ),
+                "signature": user.signature,
+                "level": user.level,
+            },
+            "token": token,
+        }
+    )

@@ -1,0 +1,33 @@
+[tool.black]
+line-length = 100                # 每行最大长度（默认88），推荐100
+target-version = ['py312']      # Python版本，可改为 py310/py312
+skip-string-normalization = true  # 保留原始字符串引号，不强制换成双引号
+include = '\.pyi?$'             # 只格式化 .py 和 .pyi 文件
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | build
+  | dist
+  | migrations
+  | __pycache__
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["app"]      # 如果你的项目模块是 app/
+skip = ["migrations", "__pycache__"]
+
+[tool.mypy]
+python_version = 3.11
+ignore_missing_imports = true
+strict = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests"
+]

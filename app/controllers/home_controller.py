@@ -1,10 +1,24 @@
 from flask import Blueprint, request
 from ..core.response import Result
-from ..services.home_service import get_top_books_service, get_news_list_service, get_writer_list_service, \
-    get_recommend_books, get_adapt_list_service, get_ranking_list, get_recent_updates
-from ..schemas.home_schema import TopBookOut, NewsOut, WriterOut, RecommendResponse, AdaptListResponse
+from ..services.home_service import (
+    get_top_books_service,
+    get_news_list_service,
+    get_writer_list_service,
+    get_recommend_books,
+    get_adapt_list_service,
+    get_ranking_list,
+    get_recent_updates,
+)
+from ..schemas.home_schema import (
+    TopBookOut,
+    NewsOut,
+    WriterOut,
+    RecommendResponse,
+    AdaptListResponse,
+)
 
 home_bp = Blueprint('home', __name__)
+
 
 @home_bp.route('/top-books', methods=['GET'])
 def get_top_books():
@@ -22,12 +36,13 @@ def get_top_books():
             "title": book.title,
             "desc": desc_value,
             "path": f"/bookinfo/{book.id}",
-            "pic": cover_url
+            "pic": cover_url,
         }
 
         result.append(TopBookOut(**item).dict())
 
     return Result.success(result)
+
 
 @home_bp.route('/news-list', methods=['GET'])
 def get_news_list():
@@ -36,13 +51,11 @@ def get_news_list():
 
     result = []
     for news in news_list:
-        item = {
-            "title": news.title,
-            "path": f"/newsinfo/{news.id}"
-        }
+        item = {"title": news.title, "path": f"/newsinfo/{news.id}"}
         result.append(NewsOut(**item).dict())
 
     return Result.success(result)
+
 
 @home_bp.route('/writer-list', methods=['GET'])
 def get_writer_list():
@@ -54,25 +67,28 @@ def get_writer_list():
             "title": writer.nickname,
             "desc": f"代表作{writer.masterpiece}" if writer.masterpiece else "",
             "type": writer.author_level,
-            "pic": f"{request.host_url.rstrip('/')}{writer.life_photo}" if writer.life_photo else "",
-            "path": f"/writerinfo/{writer.id}"
+            "pic": (
+                f"{request.host_url.rstrip('/')}{writer.life_photo}" if writer.life_photo else ""
+            ),
+            "path": f"/writerinfo/{writer.id}",
         }
         result.append(WriterOut(**item).dict())
 
     return Result.success(result)
 
+
 @home_bp.route('/recommend', methods=['GET'])
 def recommend():
     male_result, female_result = get_recommend_books()
-    return Result.success(
-        RecommendResponse(male=male_result, female=female_result).dict()
-    )
+    return Result.success(RecommendResponse(male=male_result, female=female_result).dict())
+
 
 @home_bp.route('/adaptlist', methods=['GET'])
 def adaptlist():
     limit = request.args.get('limit')
     data = get_adapt_list_service(limit=limit)
     return Result.success(AdaptListResponse(data=data).dict())
+
 
 @home_bp.route('/ranking', methods=['GET'])
 def ranking():
@@ -81,6 +97,7 @@ def ranking():
 
     data = get_ranking_list(reader_type, plot_type)
     return Result.success(data.dict())
+
 
 @home_bp.route('/recent-updates', methods=['GET'])
 def recent_updates():

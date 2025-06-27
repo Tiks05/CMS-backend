@@ -4,6 +4,7 @@ from app.core.response import Result
 
 writer_bp = Blueprint('writer', __name__)
 
+
 @writer_bp.route('/news', methods=['GET'])
 def get_news_list():
     news_type = request.args.get('type', 'normal')
@@ -14,6 +15,7 @@ def get_news_list():
 
     data = get_news_list_by_type(news_type=news_type, limit=limit)
     return Result.success(data)
+
 
 @writer_bp.route('/classroom', methods=['GET'])
 def get_classroom_list():

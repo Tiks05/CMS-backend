@@ -5,6 +5,7 @@ from app.extensions import db
 from sqlalchemy import desc
 from app.schemas.library_schema import BookListQuerySchema, BookOutSchema, BookListOutSchema
 
+
 def get_filtered_books(params: BookListQuerySchema):
     query = db.session.query(Book)
 
@@ -15,7 +16,7 @@ def get_filtered_books(params: BookListQuerySchema):
         key = {
             'theme_type': Book.theme_type,
             'role_type': Book.role_type,
-            'plot_type': Book.plot_type
+            'plot_type': Book.plot_type,
         }.get(params.category_group)
         if key:
             query = query.filter(key == params.category_type)
@@ -45,9 +46,9 @@ def get_filtered_books(params: BookListQuerySchema):
     pagination = query.paginate(page=params.page, per_page=params.pageSize, error_out=False)
 
     return BookListOutSchema(
-        total=pagination.total,
-        records=[serialize_book(b) for b in pagination.items]
+        total=pagination.total, records=[serialize_book(b) for b in pagination.items]
     ).dict()
+
 
 def serialize_book(book: Book) -> dict:
     now = datetime.utcnow()
@@ -75,5 +76,5 @@ def serialize_book(book: Book) -> dict:
         intro=book.intro,
         coverUrl=cover_url,
         updatedAt=time_display,
-        path=f"/bookinfo/{book.id}"
+        path=f"/bookinfo/{book.id}",
     ).dict()

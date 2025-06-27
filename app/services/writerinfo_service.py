@@ -7,11 +7,14 @@ from app.models.volume import Volume
 from app.models.chapter import Chapter
 from app.extensions import db
 
+
 def get_writer_header_service(writer_id: int):
     user = db.session.query(User).filter_by(id=writer_id, role='author').first()
 
     # 总字数统计
-    total_words = db.session.query(db.func.sum(Book.word_count)).filter_by(user_id=writer_id).scalar() or 0
+    total_words = (
+        db.session.query(db.func.sum(Book.word_count)).filter_by(user_id=writer_id).scalar() or 0
+    )
     # 粉丝数（可按你后续粉丝表统计，这里先写0或模拟）
     follower_count = random.randint(30000, 150000)
 
@@ -25,6 +28,7 @@ def get_writer_header_service(writer_id: int):
         "follower_count": follower_count,
         # 其他字段可补充
     }
+
 
 def get_writer_works_service(writer_id: int):
     books = db.session.query(Book).filter_by(user_id=writer_id).all()
@@ -59,18 +63,21 @@ def get_writer_works_service(writer_id: int):
             .scalar()
         ) or 0
 
-        works.append({
-            "title": book.title,
-            "cover_url": f"{request.host_url.rstrip('/')}{book.cover_url}" if book.cover_url else "",
-            "status": book.status,
-            "word_count": total_word_count,
-            "tags": book.tags,
-            "intro": book.intro,
-            "updated_at": book.updated_at.isoformat() if book.updated_at else "",
-            "bookinfo_path": f"/bookinfo/{book.id}",
-            "max_chapter": max_chapter_num,
-            "max_chapter_title": max_chapter_title,
-        })
+        works.append(
+            {
+                "title": book.title,
+                "cover_url": (
+                    f"{request.host_url.rstrip('/')}{book.cover_url}" if book.cover_url else ""
+                ),
+                "status": book.status,
+                "word_count": total_word_count,
+                "tags": book.tags,
+                "intro": book.intro,
+                "updated_at": book.updated_at.isoformat() if book.updated_at else "",
+                "bookinfo_path": f"/bookinfo/{book.id}",
+                "max_chapter": max_chapter_num,
+                "max_chapter_title": max_chapter_title,
+            }
+        )
 
     return works
-

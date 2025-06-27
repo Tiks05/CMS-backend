@@ -1,19 +1,28 @@
 from typing import List
 from sqlalchemy.orm import selectinload, joinedload
 from ..models import Book, News, User, Chapter, Volume
-from ..schemas.home_schema import RankingBookOut, BookRankingOut, BookOut, AdaptBookOut, RecentUpdateItem
+from ..schemas.home_schema import (
+    RankingBookOut,
+    BookRankingOut,
+    BookOut,
+    AdaptBookOut,
+    RecentUpdateItem,
+)
 from app.extensions import db
 from flask import request
 import random
+
 
 def get_top_books_service():
     # 取前 30 本书，按收藏数降序排序（你后续可以换成综合评分、人气等等）
     books = Book.query.order_by(Book.favorite_count.desc()).limit(30).all()
     return books
 
+
 def get_news_list_service(limit):
     news_list = News.query.order_by(News.created_at.desc()).limit(limit).all()
     return news_list
+
 
 def get_writer_list_service():
     palace_writers = User.query.filter(User.author_level == '殿堂作家').all()
@@ -25,11 +34,14 @@ def get_writer_list_service():
 
     return writers
 
+
 def get_recommend_books():
     def query_books(reader_type):
-        return Book.query.options(selectinload(Book.author)) \
-            .filter(Book.reader_type == reader_type) \
+        return (
+            Book.query.options(selectinload(Book.author))
+            .filter(Book.reader_type == reader_type)
             .all()
+        )
 
     def convert(books):
         return [
@@ -37,9 +49,11 @@ def get_recommend_books():
                 id=book.id,
                 title=book.title,
                 desc=book.intro or "",
-                cover_url=f"{request.host_url.rstrip('/')}{book.cover_url}" if book.cover_url else "",
+                cover_url=(
+                    f"{request.host_url.rstrip('/')}{book.cover_url}" if book.cover_url else ""
+                ),
                 author_nickname=book.author.nickname if book.author else "",
-                path=f"/bookinfo/{book.id}"
+                path=f"/bookinfo/{book.id}",
             )
             for book in books
         ]
@@ -49,8 +63,9 @@ def get_recommend_books():
 
     return (
         convert(random.sample(male_books, min(5, len(male_books)))),
-        convert(random.sample(female_books, min(5, len(female_books))))
+        convert(random.sample(female_books, min(5, len(female_books)))),
     )
+
 
 def get_adapt_list_service(limit):
     books = db.session.query(Book).options(selectinload(Book.author)).limit(limit).all()
@@ -59,10 +74,11 @@ def get_adapt_list_service(limit):
         AdaptBookOut(
             id=book.id,
             pic=f"{request.host_url.rstrip('/')}{book.cover_url}" if book.cover_url else "",
-            path=f"/bookinfo/{book.id}"
+            path=f"/bookinfo/{book.id}",
         )
         for book in books
     ]
+
 
 def get_ranking_list(reader_type: str, plot_type: str) -> BookRankingOut:
     query = db.session.query(Book).filter(Book.reader_type == reader_type)
@@ -79,25 +95,22 @@ def get_ranking_list(reader_type: str, plot_type: str) -> BookRankingOut:
                 desc=(book.intro[:35] + '...') if book.intro else "",
                 path=f"/bookinfo/{book.id}",
                 pic=f"{request.host_url.rstrip('/')}{book.cover_url}" if book.cover_url else "",
-                author=book.author.nickname if book.author else ""
+                author=book.author.nickname if book.author else "",
             )
             for i, book in enumerate(books)
         ]
 
     return BookRankingOut(
-        plot_type=plot_type,
-        child=convert(read_books),
-        new_child=convert(new_books)
+        plot_type=plot_type, child=convert(read_books), new_child=convert(new_books)
     )
+
 
 def get_recent_updates(limit: int = 10) -> List[RecentUpdateItem]:
     chapters = (
         db.session.query(Chapter)
         .join(Volume, Chapter.volume_id == Volume.id)
         .join(Book, Volume.book_id == Book.id)
-        .options(
-            joinedload(Chapter.volume).joinedload(Volume.book).joinedload(Book.author)
-        )
+        .options(joinedload(Chapter.volume).joinedload(Volume.book).joinedload(Book.author))
         .order_by(Chapter.updated_at.desc())
         .limit(limit)
         .all()
@@ -110,13 +123,15 @@ def get_recent_updates(limit: int = 10) -> List[RecentUpdateItem]:
         author = book.author if book else None
 
         if book:
-            updates.append(RecentUpdateItem(
-                type=book.plot_type or "",
-                title=book.title,
-                path=f"/bookinfo/{book.id}",
-                chapter=chapter.title,
-                author=author.nickname if author else "未知作者",
-                time=chapter.updated_at.strftime("%m-%d %H:%M") if chapter.updated_at else ""
-            ))
+            updates.append(
+                RecentUpdateItem(
+                    type=book.plot_type or "",
+                    title=book.title,
+                    path=f"/bookinfo/{book.id}",
+                    chapter=chapter.title,
+                    author=author.nickname if author else "未知作者",
+                    time=chapter.updated_at.strftime("%m-%d %H:%M") if chapter.updated_at else "",
+                )
+            )
 
     return updates

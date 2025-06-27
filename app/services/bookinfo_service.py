@@ -7,25 +7,27 @@ from app.models.volume import Volume
 from app.models.chapter import Chapter
 from app.schemas.bookinfo_schema import ChapterReadResponse
 
+
 def get_book_header(book_id: int) -> dict:
     book = db.session.query(Book).filter(Book.id == book_id).first()
     if not book:
         return {}
 
-    # 最大章节号（跨 volume）
-    max_chapter = (
-        db.session.query(func.max(Chapter.chapter_num))
+    # 获取最新章节（根据更新时间排序）
+    latest_chapter = (
+        db.session.query(Chapter)
+        .join(Volume, Volume.id == Chapter.volume_id)
+        .filter(Volume.book_id == book_id)
+        .order_by(Chapter.updated_at.desc())
+        .first()
+    )
+
+    total_word_count = (
+        db.session.query(func.sum(Chapter.word_count))
         .join(Volume, Volume.id == Chapter.volume_id)
         .filter(Volume.book_id == book_id)
         .scalar()
     ) or 0
-
-    total_word_count = (
-                           db.session.query(func.sum(Chapter.word_count))
-                           .join(Volume, Volume.id == Chapter.volume_id)
-                           .filter(Volume.book_id == book_id)
-                           .scalar()
-                       ) or 0
 
     author = book.author
 
@@ -33,57 +35,57 @@ def get_book_header(book_id: int) -> dict:
         'book': {
             'id': book.id,
             'title': book.title or '',
-            'cover_url': f"{request.host_url.rstrip('/')}{book.cover_url}" if book.cover_url else '',
+            'cover_url': (
+                f"{request.host_url.rstrip('/')}{book.cover_url}" if book.cover_url else ''
+            ),
             'status': book.status or '',
-            'word_count': total_word_count or 0,
+            'word_count': total_word_count,
             'tags': book.tags or '',
             'updated_at': book.updated_at.strftime('%Y-%m-%d %H:%M:%S') if book.updated_at else '',
-            'max_chapter': max_chapter
+            'latest_chapter': latest_chapter.chapter_num if latest_chapter else 0,
+            'latest_chapter_title': latest_chapter.title if latest_chapter else '',
         },
         'author': {
             'nickname': author.nickname if author else '',
-            'cover_url': f"{request.host_url.rstrip('/')}{author.avatar}" if author and author.avatar else '',
+            'cover_url': (
+                f"{request.host_url.rstrip('/')}{author.avatar}" if author and author.avatar else ''
+            ),
             'signature': author.signature if author else '',
-            'path': f'/writerinfo/{author.id}' if author else ''
-        }
+            'path': f'/writerinfo/{author.id}' if author else '',
+        },
     }
+
 
 def get_book_content(book_id: int) -> dict:
     volumes = (
-        db.session.query(Volume)
-        .filter(Volume.book_id == book_id)
-        .order_by(Volume.sort.asc())
-        .all()
+        db.session.query(Volume).filter(Volume.book_id == book_id).order_by(Volume.sort.asc()).all()
     )
 
     result = []
     for vol in volumes:
         chapters = sorted(vol.chapters, key=lambda c: c.chapter_num)
-        chapter_list = [{
-            'title': chap.title,
-            'path': f'/read/{book_id}/{vol.sort}/{chap.chapter_num}'
-        } for chap in chapters]
+        chapter_list = [
+            {'title': chap.title, 'path': f'/read/{book_id}/{vol.sort}/{chap.chapter_num}'}
+            for chap in chapters
+        ]
 
-        result.append({
-            'title': vol.title,
-            'chapter_count': len(chapter_list),
-            'chapters': chapter_list
-        })
+        result.append(
+            {'title': vol.title, 'chapter_count': len(chapter_list), 'chapters': chapter_list}
+        )
 
     book = db.session.query(Book).filter(Book.id == book_id).first()
     intro = book.intro if book else ''
 
-    return {
-        'intro': intro,
-        'volumes': result
-    }
+    return {'intro': intro, 'volumes': result}
+
 
 def get_chapter_content(book_id: int, volume_sort: int, chapter_num: int) -> Dict:
     # 1. 通过 book_id + volume.sort 查对应 Volume
-    volume = db.session.query(Volume).filter(
-        Volume.book_id == book_id,
-        Volume.sort == volume_sort
-    ).first()
+    volume = (
+        db.session.query(Volume)
+        .filter(Volume.book_id == book_id, Volume.sort == volume_sort)
+        .first()
+    )
     if not volume:
         raise ValueError("该分卷不存在或不属于当前书籍")
 
@@ -124,5 +126,5 @@ def get_chapter_content(book_id: int, volume_sort: int, chapter_num: int) -> Dic
         content=chapter.content or "",
         chapter_index=chapter.chapter_num or 1,
         prev_chapter_id=prev_chapter.chapter_num if prev_chapter else None,
-        next_chapter_id=next_chapter.chapter_num if next_chapter else None
+        next_chapter_id=next_chapter.chapter_num if next_chapter else None,
     ).dict()
