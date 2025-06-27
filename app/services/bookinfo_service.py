@@ -57,20 +57,37 @@ def get_book_header(book_id: int) -> dict:
 
 
 def get_book_content(book_id: int) -> dict:
+
+    def num_to_chinese(num: int) -> str:
+        digits = '零一二三四五六七八九'
+        if num <= 10:
+            return '十' if num == 10 else digits[num]
+        elif num < 20:
+            return '十' + digits[num % 10]
+        else:
+            tens = num // 10
+            ones = num % 10
+            return digits[tens] + '十' + (digits[ones] if ones > 0 else '')
+
     volumes = (
         db.session.query(Volume).filter(Volume.book_id == book_id).order_by(Volume.sort.asc()).all()
     )
 
     result = []
-    for vol in volumes:
+    for idx, vol in enumerate(volumes, start=1):
         chapters = sorted(vol.chapters, key=lambda c: c.chapter_num)
         chapter_list = [
             {'title': chap.title, 'path': f'/read/{book_id}/{vol.sort}/{chap.chapter_num}'}
             for chap in chapters
         ]
 
+        chinese_idx = num_to_chinese(idx)
         result.append(
-            {'title': vol.title, 'chapter_count': len(chapter_list), 'chapters': chapter_list}
+            {
+                'title': f'第{chinese_idx}卷：{vol.title}',
+                'chapter_count': len(chapter_list),
+                'chapters': chapter_list,
+            }
         )
 
     book = db.session.query(Book).filter(Book.id == book_id).first()
