@@ -11,7 +11,7 @@
  Target Server Version : 80036 (8.0.36)
  File Encoding         : 65001
 
- Date: 27/06/2025 21:06:04
+ Date: 28/06/2025 16:13:08
 */
 
 SET NAMES utf8mb4;
@@ -57,7 +57,7 @@ CREATE TABLE `book`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `user_id`(`user_id` ASC) USING BTREE,
   CONSTRAINT `book_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1081 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1083 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of book
@@ -142,6 +142,7 @@ INSERT INTO `book` VALUES (1077, 1132, '夏夜的惨叫声', '男生', '东方�
 INSERT INTO `book` VALUES (1078, 1133, '扶摇仙女录', '男生', '东方仙侠', '连载中', 271000, '30万以下', '奇幻仙侠,玄幻,多女主,女帝,架空', '百花门女主团争夺仙宗掌门，展开仙界争霸。', '/static/uploads/covers/book78.png', '2025-06-04 14:33:00', '2025-06-04 14:33:00', 64550, NULL, NULL, NULL, '已签约');
 INSERT INTO `book` VALUES (1079, 1134, '凡鼠修仙：从因果情报开始', '男生', '东方仙侠', '连载中', 152000, '30万以下', '奇幻仙侠', '主角成为老鼠修仙者，利用因果情报系统成长。', '/static/uploads/covers/book79.png', '2025-06-09 21:00:00', '2025-06-09 21:00:00', 59900, NULL, NULL, NULL, '已签约');
 INSERT INTO `book` VALUES (1080, 2, '末日黎明：重启者', '男生', '科幻末世', '连载中', 0, '30万以下', '科幻末世', '当文明毁灭于核火之后，林风意外重启了世界。他必须在废墟中重建秩序，揭开末日真相，与楚曦并肩踏上逆转命运的征程。', '/static/uploads//covers/c80ffa124aae493e906ad30500edaa2c.png', '2025-06-19 21:19:14', '2025-06-19 23:40:15', 0, NULL, NULL, '林风 / 楚曦', '未签约');
+INSERT INTO `book` VALUES (1082, 2, '深渊边境', '男生', NULL, '连载中', 0, '30万以下', '科幻末世', '公元2386年，地表被未知病毒侵蚀，人类文明退居地底。少年林渊在一次废墟搜寻中，偶然唤醒了沉睡的智能体白葵。他们将一同踏上穿越废墟、寻找深渊源头的旅途……\r\n\r\n黑暗之中，科技与信仰交错，背叛与希望并存，边境之外，深渊正在注视。', '/static/uploads//covers/314d1d3fd9c745f293f4f155456be125.png', '2025-06-28 12:56:11', '2025-06-28 12:56:11', 0, NULL, NULL, '林渊 / 白葵', '未签约');
 
 -- ----------------------------
 -- Table structure for chapter
@@ -448,7 +449,7 @@ CREATE TABLE `user`  (
   `level` int NOT NULL COMMENT '作家数值等级（Lv.0 起）',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `phone`(`phone` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1187 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1188 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of user
@@ -600,6 +601,7 @@ INSERT INTO `user` VALUES (1183, '13326466416', '$2b$12$/5xqNN/xIOtsuDaMRpkptOgt
 INSERT INTO `user` VALUES (1184, '15919629153', '$2b$12$/5xqNN/xIOtsuDaMRpkptOgtgweLtnvxrxWIvwwBD0Q2ZIHXgTCCC', '西楼望月', 'user', '2025-06-20 13:33:46', '/static/uploads/user/avatars/4bf670da9ae14f05b381e95866e23c2a.PNG', '你闻到了吗？这是柚子的气息……柚子厨，已上线', NULL, NULL, NULL, NULL, 3);
 INSERT INTO `user` VALUES (1185, '18580570173', '$2b$12$/5xqNN/xIOtsuDaMRpkptOgtgweLtnvxrxWIvwwBD0Q2ZIHXgTCCC', '残阳如血', 'user', '2025-06-20 13:33:46', '/static/uploads/user/avatars/95654246a3694d5993b26c59ee075b7d.JPG', '一个人，一台电脑，一个宇宙', NULL, NULL, NULL, NULL, 3);
 INSERT INTO `user` VALUES (1186, '15373804278', '$2b$12$/5xqNN/xIOtsuDaMRpkptOgtgweLtnvxrxWIvwwBD0Q2ZIHXgTCCC', '北岸初晴', 'user', '2025-06-20 13:33:46', '/static/uploads/user/avatars/534bc2ea2f024a09888765c5d4f685bd.jpg', '文字是我和世界对话的方式', NULL, NULL, NULL, NULL, 3);
+INSERT INTO `user` VALUES (1187, '18087832841', '$2b$12$l4yZZtuIEmyi.2eK.laPFOveTN5YSdYBdAsnjxUineDEGWPDmyc26', 'MIKU', 'user', '2025-06-28 14:57:40', '/static/uploads/user/avatars/8bda5df1940e41a59e4e6fc668db84f4.png', '我是初音未来，是最可爱的虚拟偶像哦~', NULL, NULL, NULL, NULL, 0);
 
 -- ----------------------------
 -- Table structure for volume
@@ -614,7 +616,7 @@ CREATE TABLE `volume`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `book_id`(`book_id` ASC) USING BTREE,
   CONSTRAINT `volume_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `book` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of volume
@@ -631,5 +633,6 @@ INSERT INTO `volume` VALUES (9, 1, '我将和你见证', 9, '2025-06-18 20:24:57
 INSERT INTO `volume` VALUES (10, 1, '这一切的终焉', 10, '2025-06-18 20:24:57');
 INSERT INTO `volume` VALUES (12, 1080, '重启纪元', 1, '2025-06-23 15:24:16');
 INSERT INTO `volume` VALUES (15, 1080, '黑雾初现', 2, '2025-06-23 15:57:28');
+INSERT INTO `volume` VALUES (20, 1080, '迷雾边境', 3, '2025-06-28 13:48:40');
 
 SET FOREIGN_KEY_CHECKS = 1;

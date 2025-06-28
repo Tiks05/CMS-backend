@@ -31,6 +31,7 @@ from ..services.workspace_service import (
     get_last_chapter_by_volume_id,
     get_last_chapter_by_book_id,
     get_latest_chapter_by_book_id,
+    delete_book_by_id,
 )
 from app.schemas.workspace_schema import BookRankResponse
 from ..core.response import Result
@@ -121,6 +122,12 @@ def book_overview_detail(book_id: int):
     return Result.success(data.dict())
 
 
+@workspace_bp.route('/writer/delete-book/<int:book_id>', methods=['DELETE'])
+def delete_book(book_id):
+    delete_book_by_id(book_id)
+    return Result.success()
+
+
 @workspace_bp.route('/writer/update-book', methods=['POST'])
 def update_book():
     form = request.form
@@ -208,8 +215,9 @@ def update_volume_api():
     title = data.get('title')
 
     success = update_volume_title(volume_id, book_id, title)
-    if success:
-        return Result.success()
+    if not success:
+        raise APIException("更新失败", code=40004)
+    return Result.success()
 
 
 @workspace_bp.route('/writer/create-volume', methods=['POST'])

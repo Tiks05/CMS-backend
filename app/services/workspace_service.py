@@ -186,8 +186,9 @@ def get_book_list_by_user(user_id: int) -> list[dict]:
                     if book.cover_url
                     else "/src/assets/images/workspace/writer/default_cover.png"
                 ),
-                "now": recent_chapter.title if recent_chapter else "暂无章节",
-                "chapter": chapter_count,
+                "latestChapterTitle": recent_chapter.title if recent_chapter else "暂无章节",
+                "latestChapterNum": recent_chapter.chapter_num if recent_chapter else 0,
+                "totalChapters": chapter_count,
                 "words": word_total,
                 "status": book.status or "连载中",
                 "path": f"/bookinfo/{book.id}",
@@ -213,6 +214,28 @@ def get_book_detail(book_id: int) -> BookDetailSchema:
         contract_status=book.sign_status or "未签约",
         update_status=book.status or "连载中",
     )
+
+
+def delete_book_by_id(book_id: int):
+    book = db.session.get(Book, book_id)
+
+    # 查找该书所有 volume_id
+    volume_ids = db.session.query(Volume.id).filter(Volume.book_id == book_id).all()
+    volume_ids = [vid for (vid,) in volume_ids]  # 解包为纯 ID 列表
+
+    # 删除章节（根据 volume_id）
+    if volume_ids:
+        db.session.query(Chapter).filter(Chapter.volume_id.in_(volume_ids)).delete(
+            synchronize_session=False
+        )
+
+    # 删除分卷
+    db.session.query(Volume).filter(Volume.book_id == book_id).delete(synchronize_session=False)
+
+    # 删除书籍
+    db.session.delete(book)
+
+    db.session.commit()
 
 
 def update_book_info(data, cover_file: FileStorage = None):
