@@ -1,11 +1,5 @@
 import datetime
-from typing import List, Dict
-from flask import request
-from sqlalchemy.orm import joinedload
-from app.extensions import db
-from app.models.comment import Comment
-from collections import defaultdict
-from app.schemas.comment_schema import CommentResponse, CommentChild, UserInfo, CreateCommentRequest
+from app.schemas.comment_schema import CreateCommentRequest
 from collections import defaultdict
 from flask import request
 from typing import List, Dict
